@@ -22,6 +22,7 @@ import JobList from './pages/Jobs/JobList';
 import JobDetail from './pages/Jobs/JobDetails';
 import ApplicationsPage from './pages/ApplicationsPage';
 import './App.css';
+import JobForm from './components/JobForm';
 
 
 
@@ -45,6 +46,7 @@ function App() {
             <Route path="/courses/new" element={<CourseWizard />} />
             <Route path="/courses/:id" element={<CourseDetail />} />
             <Route path="/jobs" element={<JobList />} />
+            <Route path="/jobs/new" element={<JobForm />} />
             <Route path="/jobs/:id" element={<JobDetail />} />
             <Route path="/applications" element={<ApplicationsPage />} />
           </Route>

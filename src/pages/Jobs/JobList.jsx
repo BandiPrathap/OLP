@@ -1,11 +1,10 @@
-// src/pages/jobs/JobList.jsx
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // <-- import useNavigate
 import { toast } from 'react-toastify';
 import { getAllJobs, createJob } from '../../api';
-import { 
-  Search, Briefcase, GeoAlt, CurrencyDollar, Funnel, 
-  X, Clock, Globe, Telephone, Type, PencilSquare 
+import {
+  Search, Briefcase, GeoAlt, CurrencyDollar, Funnel,
+  X, Clock, Globe, Telephone, Type, PencilSquare
 } from 'react-bootstrap-icons';
 import { Modal, Button, Form } from 'react-bootstrap';
 
@@ -30,6 +29,8 @@ const JobList = () => {
     skills_required: ''
   });
 
+  const navigate = useNavigate(); // <-- initialize navigate
+
   useEffect(() => {
     fetchJobs();
   }, []);
@@ -51,11 +52,11 @@ const JobList = () => {
 
   // Filter jobs based on search and filters
   const filteredJobs = jobs.filter(job => {
-    const matchesSearch = 
+    const matchesSearch =
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesJobType = filters.jobType ? job.job_type === filters.jobType : true;
     const matchesMode = filters.mode ? job.mode === filters.mode : true;
     const matchesSalary = filters.minSalary ? job.salary >= parseInt(filters.minSalary) : true;
@@ -103,7 +104,7 @@ const JobList = () => {
   };
 
   if (loading) return (
-    <div className="d-flex justify-content-center align-items-center vh-50">
+    <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '40vh' }}>
       <div className="spinner-border text-primary" role="status">
         <span className="visually-hidden">Loading...</span>
       </div>
@@ -112,14 +113,25 @@ const JobList = () => {
 
   return (
     <div className="container my-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="h2 fw-bold">
-          <Briefcase className="me-2" />
-          Job Listings
-        </h1>
-        <Button 
-          variant="primary" 
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+        <div className="d-flex align-items-center gap-2">
+          <Button
+            variant="outline-secondary"
+            className="me-2"
+            onClick={() => navigate("/")} // <-- Go back button
+            size="sm"
+          >
+            &larr; Back
+          </Button>
+          <h1 className="h2 fw-bold mb-0 d-flex align-items-center">
+            <Briefcase className="me-2" />
+            Job Listings
+          </h1>
+        </div>
+        <Button
+          variant="primary"
           onClick={() => setShowModal(true)}
+          className="d-flex align-items-center"
         >
           <PencilSquare className="me-2" />
           Post New Job
@@ -129,69 +141,70 @@ const JobList = () => {
       {/* Search and Filter Section */}
       <div className="card mb-4 border-0 shadow-sm">
         <div className="card-body">
-          <div className="input-group mb-3">
-            <span className="input-group-text">
-              <Search />
-            </span>
-            <input 
-              type="text" 
-              className="form-control form-control-lg"
-              placeholder="Search jobs, companies, or keywords"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <div className="d-flex flex-wrap align-items-center gap-3">
-            <div className="d-flex align-items-center">
-              <Funnel className="me-2" />
-              <strong>Filters:</strong>
+          <div className="row g-3 align-items-center">
+            <div className="col-12 col-md-4">
+              <div className="input-group">
+                <span className="input-group-text">
+                  <Search />
+                </span>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Search jobs, companies, or keywords"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
-            
-            <select 
-              className="form-select"
-              value={filters.jobType}
-              onChange={(e) => setFilters({...filters, jobType: e.target.value})}
-            >
-              <option value="">All Types</option>
-              {jobTypes.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-            
-            <select 
-              className="form-select"
-              value={filters.mode}
-              onChange={(e) => setFilters({...filters, mode: e.target.value})}
-            >
-              <option value="">All Modes</option>
-              {modes.map(mode => (
-                <option key={mode} value={mode}>{mode}</option>
-              ))}
-            </select>
-            
-            <div className="input-group" style={{width: '200px'}}>
-              <span className="input-group-text">
-                <CurrencyDollar />
-              </span>
-              <input 
-                type="number" 
-                className="form-control"
-                placeholder="Min Salary"
-                value={filters.minSalary}
-                onChange={(e) => setFilters({...filters, minSalary: e.target.value})}
-              />
+            <div className="col-12 col-md-8">
+              <div className="d-flex flex-wrap align-items-center gap-2">
+                <div className="d-flex align-items-center me-2">
+                  <Funnel className="me-2" />
+                  <strong>Filters:</strong>
+                </div>
+                <select
+                  className="form-select w-auto"
+                  value={filters.jobType}
+                  onChange={(e) => setFilters({ ...filters, jobType: e.target.value })}
+                >
+                  <option value="">All Types</option>
+                  {jobTypes.map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+                <select
+                  className="form-select w-auto"
+                  value={filters.mode}
+                  onChange={(e) => setFilters({ ...filters, mode: e.target.value })}
+                >
+                  <option value="">All Modes</option>
+                  {modes.map(mode => (
+                    <option key={mode} value={mode}>{mode}</option>
+                  ))}
+                </select>
+                <div className="input-group w-auto" style={{ minWidth: 120 }}>
+                  <span className="input-group-text">
+                    <CurrencyDollar />
+                  </span>
+                  <input
+                    type="number"
+                    className="form-control"
+                    placeholder="Min Salary"
+                    value={filters.minSalary}
+                    onChange={(e) => setFilters({ ...filters, minSalary: e.target.value })}
+                  />
+                </div>
+                {(filters.jobType || filters.mode || filters.minSalary) && (
+                  <button
+                    className="btn btn-outline-secondary btn-sm"
+                    onClick={clearFilters}
+                  >
+                    <X className="me-1" />
+                    Clear
+                  </button>
+                )}
+              </div>
             </div>
-            
-            {(filters.jobType || filters.mode || filters.minSalary) && (
-              <button 
-                className="btn btn-outline-secondary"
-                onClick={clearFilters}
-              >
-                <X className="me-1" />
-                Clear Filters
-              </button>
-            )}
           </div>
         </div>
       </div>
@@ -215,13 +228,13 @@ const JobList = () => {
       ) : (
         <div className="row g-4">
           {filteredJobs.map(job => (
-            <div key={job.id} className="col-md-6">
+            <div key={job.id} className="col-12 col-md-6 col-lg-4">
               <div className="card h-100 shadow-sm border-0">
-                <div className="card-body">
-                  <div className="d-flex justify-content-between align-items-start">
+                <div className="card-body d-flex flex-column">
+                  <div className="d-flex justify-content-between align-items-start mb-2">
                     <div>
-                      <h3 className="h5 card-title fw-bold">{job.title}</h3>
-                      <div className="d-flex align-items-center mb-2">
+                      <h3 className="h5 card-title fw-bold mb-1">{job.title}</h3>
+                      <div className="d-flex align-items-center mb-1 flex-wrap">
                         <span className="text-primary fw-medium">{job.company_name}</span>
                         <span className="mx-2 text-muted">•</span>
                         <span className="d-flex align-items-center text-muted">
@@ -230,15 +243,21 @@ const JobList = () => {
                         </span>
                       </div>
                     </div>
-                    <span className="badge bg-primary-subtle text-primary fs-6">
+                    <span className="badge bg-primary-subtle text-primary fs-6 align-self-start">
                       ${job.salary}/mo
                     </span>
                   </div>
-                  
-                  <p className="card-text text-truncate-2 mb-3" style={{ maxHeight: '3em' }}>
+
+                  <p className="card-text mb-3" style={{
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    minHeight: '2.8em'
+                  }}>
                     {job.description}
                   </p>
-                  
+
                   <div className="d-flex flex-wrap gap-2 mb-3">
                     <span className="badge bg-light text-dark border">
                       <Briefcase className="me-1" />
@@ -253,12 +272,12 @@ const JobList = () => {
                       </span>
                     ))}
                   </div>
-                  
-                  <div className="d-flex justify-content-between align-items-center">
+
+                  <div className="d-flex justify-content-between align-items-center mt-auto">
                     <small className="text-muted">
                       Posted {new Date(job.created_at).toLocaleDateString()}
                     </small>
-                    <Link 
+                    <Link
                       to={`/jobs/${job.id}`}
                       className="btn btn-sm btn-outline-primary"
                     >
@@ -273,10 +292,9 @@ const JobList = () => {
       )}
 
       {/* Add Job Modal */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
+      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg" centered>
         <Modal.Header closeButton>
           <Modal.Title>
-            
             Post New Job
           </Modal.Title>
         </Modal.Header>
@@ -296,7 +314,7 @@ const JobList = () => {
                   required
                 />
               </div>
-              
+
               <div className="col-md-6 mb-3">
                 <Form.Label>
                   <Briefcase className="me-1" />
@@ -310,7 +328,7 @@ const JobList = () => {
                   required
                 />
               </div>
-              
+
               <div className="col-md-6 mb-3">
                 <Form.Label>
                   <GeoAlt className="me-1" />
@@ -324,7 +342,7 @@ const JobList = () => {
                   required
                 />
               </div>
-              
+
               <div className="col-md-6 mb-3">
                 <Form.Label>
                   <CurrencyDollar className="me-1" />
@@ -336,9 +354,10 @@ const JobList = () => {
                   value={formData.salary}
                   onChange={handleInputChange}
                   required
+                  min={0}
                 />
               </div>
-              
+
               <div className="col-md-6 mb-3">
                 <Form.Label>
                   <Clock className="me-1" />
@@ -357,7 +376,7 @@ const JobList = () => {
                   <option value="Internship">Internship</option>
                 </Form.Select>
               </div>
-              
+
               <div className="col-md-6 mb-3">
                 <Form.Label>
                   <Globe className="me-1" />
@@ -374,10 +393,9 @@ const JobList = () => {
                   <option value="Hybrid">Hybrid</option>
                 </Form.Select>
               </div>
-              
+
               <div className="col-12 mb-3">
                 <Form.Label>
-                  
                   Description *
                 </Form.Label>
                 <Form.Control
@@ -389,7 +407,7 @@ const JobList = () => {
                   required
                 />
               </div>
-              
+
               <div className="col-12 mb-3">
                 <Form.Label>
                   <Telephone className="me-1" />

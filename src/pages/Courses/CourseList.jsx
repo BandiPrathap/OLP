@@ -1,6 +1,6 @@
 // src/pages/courses/CourseList.jsx
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { 
   Container, 
@@ -34,6 +34,8 @@ const CourseList = () => {
   const [sortOrder, setSortOrder] = useState('newest');
   const [priceFilter, setPriceFilter] = useState('all');
   const [activeFilters, setActiveFilters] = useState(0);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -120,7 +122,16 @@ const CourseList = () => {
   return (
     <Container className="py-5 animate-fade-in">
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+        
         <div>
+          <Button
+            variant="outline-secondary"
+            className="me-2"
+            onClick={() => navigate("/")} // <-- Go back button
+            size="sm"
+          >
+            &larr; Back
+          </Button>
           <h1 className="h2 fw-bold mb-3">Course Catalog</h1>
           <p className="text-muted">
             {filteredCourses.length} course{filteredCourses.length !== 1 ? 's' : ''} available

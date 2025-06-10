@@ -67,6 +67,7 @@ export const getJobById = (id) => API.get(`/api/jobs/${id}`);
 export const getJobsByCourse = (courseId) => API.get(`/api/jobs/course/${courseId}`);
 export const getJobApplications = (jobId) => API.get(`/api/jobs/${jobId}/applications`);
 export const deleteJob = (id) => API.delete(`/api/jobs/${id}`);
+export const updateJob = (id, jobData) => API.put(`/api/jobs/${id}`, jobData);
 
 
 export default API;

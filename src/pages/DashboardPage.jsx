@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { getAllCourses, getAllJobs } from '../api';
+import { getAllCourses, getAllJobs, getJobApplications } from '../api';
 import { 
   Card, 
   Container, 

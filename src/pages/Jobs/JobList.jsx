@@ -2,72 +2,420 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { getAllJobs } from '../../api';
+import { getAllJobs, createJob } from '../../api';
+import { 
+  Search, Briefcase, GeoAlt, CurrencyDollar, Funnel, 
+  X, Clock, Globe, Telephone, Type, PencilSquare 
+} from 'react-bootstrap-icons';
+import { Modal, Button, Form } from 'react-bootstrap';
 
 const JobList = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({
+    jobType: '',
+    mode: '',
+    minSalary: ''
+  });
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    company_name: '',
+    location: '',
+    job_type: 'Full-time',
+    mode: 'Remote',
+    salary: '',
+    description: '',
+    skills_required: ''
+  });
 
   useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        const response = await getAllJobs();
-        setJobs(response.data);
-      } catch (error) {
-        toast.error('Failed to load jobs');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchJobs();
   }, []);
 
-  if (loading) return <div className="text-center py-8">Loading jobs...</div>;
+  const fetchJobs = async () => {
+    try {
+      const response = await getAllJobs();
+      setJobs(response.data);
+    } catch (error) {
+      toast.error('Failed to load jobs');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Extract unique filter options
+  const jobTypes = [...new Set(jobs.map(job => job.job_type))];
+  const modes = [...new Set(jobs.map(job => job.mode))];
+
+  // Filter jobs based on search and filters
+  const filteredJobs = jobs.filter(job => {
+    const matchesSearch = 
+      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.description.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesJobType = filters.jobType ? job.job_type === filters.jobType : true;
+    const matchesMode = filters.mode ? job.mode === filters.mode : true;
+    const matchesSalary = filters.minSalary ? job.salary >= parseInt(filters.minSalary) : true;
+
+    return matchesSearch && matchesJobType && matchesMode && matchesSalary;
+  });
+
+  const clearFilters = () => {
+    setFilters({
+      jobType: '',
+      mode: '',
+      minSalary: ''
+    });
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await createJob(formData);
+      toast.success('Job posted successfully!');
+      setShowModal(false);
+      fetchJobs(); // Refresh job list
+      // Reset form
+      setFormData({
+        title: '',
+        company_name: '',
+        location: '',
+        job_type: 'Full-time',
+        mode: 'Remote',
+        salary: '',
+        description: '',
+        skills_required: ''
+      });
+    } catch (error) {
+      toast.error('Failed to post job: ' + error.message);
+    }
+  };
+
+  if (loading) return (
+    <div className="d-flex justify-content-center align-items-center vh-50">
+      <div className="spinner-border text-primary" role="status">
+        <span className="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Jobs</h1>
-        <Link 
-          to="/jobs/new" 
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+    <div className="container my-4">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h1 className="h2 fw-bold">
+          <Briefcase className="me-2" />
+          Job Listings
+        </h1>
+        <Button 
+          variant="primary" 
+          onClick={() => setShowModal(true)}
         >
+          <PencilSquare className="me-2" />
           Post New Job
-        </Link>
+        </Button>
       </div>
 
-      {jobs.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-600">No jobs found</p>
+      {/* Search and Filter Section */}
+      <div className="card mb-4 border-0 shadow-sm">
+        <div className="card-body">
+          <div className="input-group mb-3">
+            <span className="input-group-text">
+              <Search />
+            </span>
+            <input 
+              type="text" 
+              className="form-control form-control-lg"
+              placeholder="Search jobs, companies, or keywords"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div className="d-flex flex-wrap align-items-center gap-3">
+            <div className="d-flex align-items-center">
+              <Funnel className="me-2" />
+              <strong>Filters:</strong>
+            </div>
+            
+            <select 
+              className="form-select"
+              value={filters.jobType}
+              onChange={(e) => setFilters({...filters, jobType: e.target.value})}
+            >
+              <option value="">All Types</option>
+              {jobTypes.map(type => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+            
+            <select 
+              className="form-select"
+              value={filters.mode}
+              onChange={(e) => setFilters({...filters, mode: e.target.value})}
+            >
+              <option value="">All Modes</option>
+              {modes.map(mode => (
+                <option key={mode} value={mode}>{mode}</option>
+              ))}
+            </select>
+            
+            <div className="input-group" style={{width: '200px'}}>
+              <span className="input-group-text">
+                <CurrencyDollar />
+              </span>
+              <input 
+                type="number" 
+                className="form-control"
+                placeholder="Min Salary"
+                value={filters.minSalary}
+                onChange={(e) => setFilters({...filters, minSalary: e.target.value})}
+              />
+            </div>
+            
+            {(filters.jobType || filters.mode || filters.minSalary) && (
+              <button 
+                className="btn btn-outline-secondary"
+                onClick={clearFilters}
+              >
+                <X className="me-1" />
+                Clear Filters
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Results Count */}
+      <div className="mb-3 d-flex justify-content-between align-items-center">
+        <p className="mb-0 text-muted">
+          Showing <strong>{filteredJobs.length}</strong> of <strong>{jobs.length}</strong> jobs
+        </p>
+      </div>
+
+      {/* Jobs List */}
+      {filteredJobs.length === 0 ? (
+        <div className="text-center py-5">
+          <div className="mb-4">
+            <Briefcase size={64} className="text-muted" />
+          </div>
+          <h3 className="h5">No jobs found</h3>
+          <p className="text-muted">Try adjusting your search or filter criteria</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6">
-          {jobs.map(job => (
-            <div key={job.id} className="bg-white rounded-lg shadow-md p-6">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-xl font-bold">{job.title}</h3>
-                  <p className="text-gray-600">{job.company_name} - {job.location}</p>
-                  <div className="flex gap-2 mt-2">
-                    <span className="bg-gray-200 text-gray-800 px-2 py-1 rounded-md text-sm">
-                      {job.job_type}
-                    </span>
-                    <span className="bg-gray-200 text-gray-800 px-2 py-1 rounded-md text-sm">
-                      {job.mode}
+        <div className="row g-4">
+          {filteredJobs.map(job => (
+            <div key={job.id} className="col-md-6">
+              <div className="card h-100 shadow-sm border-0">
+                <div className="card-body">
+                  <div className="d-flex justify-content-between align-items-start">
+                    <div>
+                      <h3 className="h5 card-title fw-bold">{job.title}</h3>
+                      <div className="d-flex align-items-center mb-2">
+                        <span className="text-primary fw-medium">{job.company_name}</span>
+                        <span className="mx-2 text-muted">•</span>
+                        <span className="d-flex align-items-center text-muted">
+                          <GeoAlt className="me-1" />
+                          {job.location}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="badge bg-primary-subtle text-primary fs-6">
+                      ${job.salary}/mo
                     </span>
                   </div>
+                  
+                  <p className="card-text text-truncate-2 mb-3" style={{ maxHeight: '3em' }}>
+                    {job.description}
+                  </p>
+                  
+                  <div className="d-flex flex-wrap gap-2 mb-3">
+                    <span className="badge bg-light text-dark border">
+                      <Briefcase className="me-1" />
+                      {job.job_type}
+                    </span>
+                    <span className="badge bg-light text-dark border">
+                      {job.mode}
+                    </span>
+                    {job.skills_required && job.skills_required.split(',').map((skill, index) => (
+                      <span key={index} className="badge bg-info bg-opacity-10 text-info">
+                        {skill.trim()}
+                      </span>
+                    ))}
+                  </div>
+                  
+                  <div className="d-flex justify-content-between align-items-center">
+                    <small className="text-muted">
+                      Posted {new Date(job.created_at).toLocaleDateString()}
+                    </small>
+                    <Link 
+                      to={`/jobs/${job.id}`}
+                      className="btn btn-sm btn-outline-primary"
+                    >
+                      View Details
+                    </Link>
+                  </div>
                 </div>
-                <Link 
-                  to={`/jobs/${job.id}`}
-                  className="text-blue-600 hover:underline"
-                >
-                  View Details
-                </Link>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* Add Job Modal */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>
+            
+            Post New Job
+          </Modal.Title>
+        </Modal.Header>
+        <Form onSubmit={handleSubmit}>
+          <Modal.Body>
+            <div className="row">
+              <div className="col-md-6 mb-3">
+                <Form.Label>
+                  <Type className="me-1" />
+                  Job Title *
+                </Form.Label>
+                <Form.Control
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              
+              <div className="col-md-6 mb-3">
+                <Form.Label>
+                  <Briefcase className="me-1" />
+                  Company Name *
+                </Form.Label>
+                <Form.Control
+                  type="text"
+                  name="company_name"
+                  value={formData.company_name}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              
+              <div className="col-md-6 mb-3">
+                <Form.Label>
+                  <GeoAlt className="me-1" />
+                  Location *
+                </Form.Label>
+                <Form.Control
+                  type="text"
+                  name="location"
+                  value={formData.location}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              
+              <div className="col-md-6 mb-3">
+                <Form.Label>
+                  <CurrencyDollar className="me-1" />
+                  Monthly Salary ($) *
+                </Form.Label>
+                <Form.Control
+                  type="number"
+                  name="salary"
+                  value={formData.salary}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              
+              <div className="col-md-6 mb-3">
+                <Form.Label>
+                  <Clock className="me-1" />
+                  Job Type *
+                </Form.Label>
+                <Form.Select
+                  name="job_type"
+                  value={formData.job_type}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="Full-time">Full-time</option>
+                  <option value="Part-time">Part-time</option>
+                  <option value="Contract">Contract</option>
+                  <option value="Freelance">Freelance</option>
+                  <option value="Internship">Internship</option>
+                </Form.Select>
+              </div>
+              
+              <div className="col-md-6 mb-3">
+                <Form.Label>
+                  <Globe className="me-1" />
+                  Work Mode *
+                </Form.Label>
+                <Form.Select
+                  name="mode"
+                  value={formData.mode}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="Remote">Remote</option>
+                  <option value="On-site">On-site</option>
+                  <option value="Hybrid">Hybrid</option>
+                </Form.Select>
+              </div>
+              
+              <div className="col-12 mb-3">
+                <Form.Label>
+                  
+                  Description *
+                </Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={4}
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              
+              <div className="col-12 mb-3">
+                <Form.Label>
+                  <Telephone className="me-1" />
+                  Required Skills (comma separated) *
+                </Form.Label>
+                <Form.Control
+                  type="text"
+                  name="skills_required"
+                  value={formData.skills_required}
+                  onChange={handleInputChange}
+                  placeholder="e.g., JavaScript, React, Node.js"
+                  required
+                />
+              </div>
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" type="submit">
+              Post Job
+            </Button>
+          </Modal.Footer>
+        </Form>
+      </Modal>
     </div>
   );
 };

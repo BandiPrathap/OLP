@@ -99,8 +99,8 @@ const DashboardPage = () => {
   return (
     <Container className="py-4 animate-fade-in">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="fw-bold text-primary">
-          <BriefcaseFill className="me-2" />
+        <h1 className="fw-bold text-primary" style={{fontSize:"1.5rem"}} >
+          <BriefcaseFill className="me-2"/>
           Admin Dashboard
         </h1>
         <Badge bg="light" text="dark" className="fs-6 p-2">

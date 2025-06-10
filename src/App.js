@@ -21,13 +21,13 @@ import CourseWizard from './pages/Courses/CourseWizard';
 import JobList from './pages/Jobs/JobList';
 import JobDetail from './pages/Jobs/JobDetails';
 import ApplicationsPage from './pages/ApplicationsPage';
-import MainLayout from './layouts/MainLayout';
+import './App.css';
 
 
 
 function App() {
   return (
-    <AuthProvider>
+    <AuthProvider className="dashboard">
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />

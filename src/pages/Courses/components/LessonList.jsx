@@ -84,6 +84,13 @@ const LessonList = ({ module, course, setCourse }) => {
 
   const formatDuration = (min) => `${min} ${min === 1 ? 'minute' : 'minutes'}`;
 
+  const getYouTubeVideoId = (url) => {
+  const regex = /(?:youtube\.com\/.*v=|youtu\.be\/)([^&?/]+)/;
+  const match = url.match(regex);
+  return match ? match[1] : '';
+};
+
+
 
 
   return (
@@ -172,21 +179,25 @@ const LessonList = ({ module, course, setCourse }) => {
               {expandedLessonId === lesson.id && (
                 <div className="mt-3">
                     <div className="mb-2">
-                    {lesson.video_url ? (
-                    <video
-                        controls
-                        width="100%"
-                        style={{ maxHeight: '480px', borderRadius: '8px' }}
-                        poster={lesson.video_url.replace('.mp4', '.jpg')}
-                    >
-                        <source src={lesson.video_url} type="video/mp4" />
-                        Your browser does not support the video tag.
-                    </video>
-                    ) : (
-                    <p className="text-danger">No video available for this lesson.</p>
-                    )}
-
-
+                    {lesson.video_url?.includes('youtube.com') || lesson.video_url?.includes('youtu.be') ? (
+                        <div className="ratio ratio-16x9">
+                            <iframe
+                            src={`https://www.youtube.com/embed/${getYouTubeVideoId(lesson.video_url)}`}
+                            title="YouTube video"
+                            allowFullScreen
+                            />
+                        </div>
+                        ) : (
+                        <video
+                            controls
+                            width="100%"
+                            style={{ maxHeight: '480px', borderRadius: '8px' }}
+                            poster={lesson.video_url.replace('.mp4', '.jpg')}
+                        >
+                            <source src={lesson.video_url} type="video/mp4" />
+                            Your browser does not support the video tag.
+                        </video>
+                        )}
                     </div>
 
                     {lesson.description && (

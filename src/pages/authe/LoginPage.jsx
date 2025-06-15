@@ -23,8 +23,17 @@ const LoginPage = () => {
     setLoading(true);
     try {
       const response = await login(credentials);
-      console.log(authLogin(response.data.token));
-      
+      const { token, role } = response.data;
+      authLogin(token, role);
+
+
+
+      if (role !== 'admin') {
+        toast.error('Access denied. Admins only.');
+        setLoading(false);
+        return;
+      }
+
       toast.success('Login successful');
       navigate('/');
     } catch (error) {
@@ -33,6 +42,8 @@ const LoginPage = () => {
       setLoading(false);
     }
   };
+
+
 
   return (
     <div className="d-flex justify-content-center align-items-center vh-100 bg-light">

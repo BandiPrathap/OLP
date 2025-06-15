@@ -23,6 +23,7 @@ import JobDetail from './pages/Jobs/JobDetails';
 import ApplicationsPage from './pages/ApplicationsPage';
 import './App.css';
 import JobForm from './components/JobForm';
+import RazorpayPayment from './RazorpayPayment';
 
 
 
@@ -35,6 +36,12 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/verify-otp" element={<VerifyOTPPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="payment" element={<RazorpayPayment
+          courseId="1"
+          amount={99} 
+          user={{ name: "Prathap", email: "prathap@example.com" }}
+        />
+        } />
       
 
         {/* Protected Admin Routes */}

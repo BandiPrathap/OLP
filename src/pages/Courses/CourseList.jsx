@@ -1,89 +1,69 @@
-// src/pages/courses/CourseList.jsx
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom'; // ✅ added useLocation
 import { toast } from 'react-toastify';
-import { 
-  Container, 
-  Row, 
-  Col, 
-  Card, 
-  Button, 
-  Form, 
-  InputGroup, 
-  Spinner,
-  Badge,
-  Dropdown
+import {
+  Container, Row, Col, Card, Button, Form, InputGroup, Spinner, Badge, Dropdown
 } from 'react-bootstrap';
-import { 
-  Search, 
-  PlusCircle, 
-  ArrowRight, 
-  Filter, 
-  SortDown, 
-  SortUp,
-  CurrencyDollar,
-  Clock,
-  Calendar
+import {
+  Search, PlusCircle, ArrowRight, Filter, SortDown, SortUp, Clock, Calendar
 } from 'react-bootstrap-icons';
 import { getAllCourses } from '../../api';
 
 const CourseList = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortOrder, setSortOrder] = useState('newest');
-  const [priceFilter, setPriceFilter] = useState('all');
-  const [activeFilters, setActiveFilters] = useState(0);
+  const [searchTerm, setSearchTerm] = useState(() => localStorage.getItem('courseSearchTerm') || '');
+  const [sortOrder, setSortOrder] = useState(() => localStorage.getItem('courseSortOrder') || 'newest');
+  const [priceFilter, setPriceFilter] = useState(() => localStorage.getItem('coursePriceFilter') || 'all');
 
   const navigate = useNavigate();
+  const location = useLocation(); // ✅ track location state
 
+  // ✅ Fetch courses
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await getAllCourses();
-        setCourses(response.data);
-        // setCourses([
-        //             {
-        //               "id": 1,
-        //               "title": "Full Stack Web Development",
-        //               "description": "Learn to build modern web applications using HTML, CSS, JavaScript, React, Node.js, and databases.",
-        //               "price": "199.99",
-        //               "discount": "20.00",
-        //               "created_at": "2025-05-24T07:37:49.964Z"
-        //             }
-        // ])
-      } catch (error) {
-        toast.error('Failed to load courses', {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-        });
+        const res = await getAllCourses();
+        setCourses(res.data || []);
+      } catch (err) {
+        toast.error("Failed to fetch courses");
       } finally {
         setLoading(false);
       }
     };
-    fetchCourses();
-  }, []);
 
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
+    fetchCourses();
+
+    if (location.state?.courseAdded) {
+      toast.success("New course added successfully!");
+      // ✅ Remove state from URL history to prevent repeated toast
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
+  // ✅ Persist filters in localStorage
+  useEffect(() => localStorage.setItem('courseSearchTerm', searchTerm), [searchTerm]);
+  useEffect(() => localStorage.setItem('courseSortOrder', sortOrder), [sortOrder]);
+  useEffect(() => localStorage.setItem('coursePriceFilter', priceFilter), [priceFilter]);
 
   const clearFilters = () => {
     setSearchTerm('');
     setSortOrder('newest');
     setPriceFilter('all');
-    setActiveFilters(0);
+    localStorage.removeItem('courseSearchTerm');
+    localStorage.removeItem('courseSortOrder');
+    localStorage.removeItem('coursePriceFilter');
   };
 
-  // Calculate active filter count
-  useEffect(() => {
-    let count = 0;
-    if (searchTerm) count++;
-    if (sortOrder !== 'newest') count++;
-    if (priceFilter !== 'all') count++;
-    setActiveFilters(count);
-  }, [searchTerm, sortOrder, priceFilter]);
+  const handleSearchChange = (e) => setSearchTerm(e.target.value);
+
+  // Count how many filters are active
+  const activeFilters =
+    (searchTerm.trim() ? 1 : 0) +
+    (priceFilter !== 'all' ? 1 : 0) +
+    (sortOrder !== 'newest' ? 1 : 0);
+
+
 
   // Filter and sort courses
   const filteredCourses = courses
@@ -118,7 +98,7 @@ const CourseList = () => {
       </div>
     );
   }
-
+  console.log(filteredCourses);
   return (
     <Container className="py-5 animate-fade-in">
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
@@ -265,7 +245,7 @@ const CourseList = () => {
                     className="bg-light border-bottom" 
                     style={{ 
                       height: '160px',
-                      backgroundImage: course.imageUrl ? `url(${course.imageUrl})` : 'none',
+                      backgroundImage: course.imageurl ? `url(${course.imageurl})` : 'none',
                       backgroundSize: 'cover',
                       backgroundPosition: 'center'
                     }}
@@ -289,17 +269,18 @@ const CourseList = () => {
                   <div className="mt-auto">
                     <div className="d-flex justify-content-between align-items-center mb-3">
                       <div className="d-flex align-items-center">
-                        <CurrencyDollar className="me-1 text-warning" />
+                        
                         <span className="fw-bold">
                           {course.price > 0 
-                            ? `$${parseFloat(course.price).toFixed(2)}`
+                            ? `₹${parseFloat(course.price).toFixed(2)}`
                             : 'Free'}
                         </span>
                         {course.originalPrice > 0 && (
                           <small className="text-muted text-decoration-line-through ms-2">
-                            ${parseFloat(course.originalPrice).toFixed(2)}
+                            ₹{parseFloat(course.originalPrice).toFixed(2)}
                           </small>
                         )}
+
                       </div>
                       
                       <Badge bg="light" text="dark">

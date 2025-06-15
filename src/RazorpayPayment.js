@@ -17,13 +17,13 @@ const RazorpayPayment = ({ courseId, amount, user }) => {
     setLoading(true);
 
     // 1. Call backend to create order
-    const orderResponse = await fetch('https://elevateu-khaki.vercel.app/api/payments/create-order', {
+    const orderResponse = await fetch('http://localhost:5000/api/payments/create-order', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InN0dWRlbnQiLCJpYXQiOjE3NDgzNDQyNDIsImV4cCI6MTc0ODM0Nzg0Mn0.xfIgbZL9oU_dQzewMk1BTHVmdOlJtQcc0cNSUUzlYpo`, // Your auth token
+        Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InN0dWRlbnQiLCJpYXQiOjE3NDk4MTQxMzR9.6XGMHnDbqdOS6y1uFXDoiOyUpWctol0IoOKMrx3w9pY`,
       },
-      body: JSON.stringify({ amount }),
+       body: JSON.stringify({ amount: amount * 100 }), 
     });
 
     const orderData = await orderResponse.json();
@@ -60,11 +60,11 @@ const RazorpayPayment = ({ courseId, amount, user }) => {
       },
       handler: async function (response) {
         // 4. Verify payment on backend
-        const verifyResponse = await fetch('https://elevateu-khaki.vercel.app/api/payments/verify', {
+        const verifyResponse = await fetch('http://localhost:5000/api/payments/verify', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InN0dWRlbnQiLCJpYXQiOjE3NDgzNDQyNDIsImV4cCI6MTc0ODM0Nzg0Mn0.xfIgbZL9oU_dQzewMk1BTHVmdOlJtQcc0cNSUUzlYpo`,
+            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InN0dWRlbnQiLCJpYXQiOjE3NDk4MTQxMzR9.6XGMHnDbqdOS6y1uFXDoiOyUpWctol0IoOKMrx3w9pY`,
           },
           body: JSON.stringify({
             razorpay_order_id: response.razorpay_order_id,

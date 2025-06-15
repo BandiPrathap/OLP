@@ -7,7 +7,16 @@ const ProtectedRoute = ({ adminOnly }) => {
 
   console.log('ProtectedRoute:', { token, isAdmin, loading });
 
-  if (loading) return <div>Loading...</div>;
+    if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
 
   if (!token) return <Navigate to="/login" replace />;
 

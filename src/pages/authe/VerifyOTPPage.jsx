@@ -1,4 +1,5 @@
 // src/pages/auth/VerifyOTPPage.jsx
+import React, { useEffect } from 'react';
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -10,6 +11,13 @@ const VerifyOTPPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const email = location.state?.email || '';
+  // Inside the component
+  useEffect(() => {
+    if (!email) {
+      toast.error('Email not found. Please start from forgot password.');
+      navigate('/forgot-password');
+    }
+  }, [email, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,31 +34,33 @@ const VerifyOTPPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full p-6 bg-white rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">Verify OTP</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="otp" className="block text-gray-700 mb-2">OTP Code</label>
-            <input
-              type="text"
-              id="otp"
-              name="otp"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md"
-              required
-              placeholder="Enter 6-digit OTP"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition disabled:opacity-50"
-          >
-            {loading ? 'Verifying...' : 'Verify OTP'}
-          </button>
-        </form>
+    <div className="d-flex align-items-center justify-content-center min-vh-100 bg-light">
+      <div className="card shadow-sm" style={{ maxWidth: 400, width: '100%' }}>
+        <div className="card-body">
+          <h2 className="card-title text-center mb-4">Verify OTP</h2>
+          <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+              <label htmlFor="otp" className="form-label">OTP Code</label>
+              <input
+                type="text"
+                id="otp"
+                name="otp"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className="form-control"
+                required
+                placeholder="Enter 6-digit OTP"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn btn-primary w-100"
+            >
+              {loading ? 'Verifying...' : 'Verify OTP'}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

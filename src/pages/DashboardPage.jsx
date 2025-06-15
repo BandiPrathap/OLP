@@ -1,8 +1,8 @@
 // src/pages/DashboardPage.jsx
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { getAllCourses, getAllJobs, getJobApplications } from '../api';
+import { getAllCourses, getAllJobs, getAllApplications } from '../api';
 import { 
   Card, 
   Container, 
@@ -22,6 +22,7 @@ import {
 } from 'react-bootstrap-icons';
 
 const DashboardPage = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     courses: 0,
     jobs: 0,
@@ -33,56 +34,83 @@ const DashboardPage = () => {
 
   useEffect(() => {
     const fetchStats = async () => {
+      const cached = localStorage.getItem('dashboardData');
+      const oneHour = 60 * 60 * 1000;
+
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        const isExpired = Date.now() - parsed.timestamp > oneHour;
+
+        if (!isExpired) {
+          setStats(parsed.stats);
+          setRecentCourses(parsed.recentCourses);
+          setRecentJobs(parsed.recentJobs);
+          setLoading(false);
+          return;
+        } else {
+          localStorage.removeItem('dashboardData'); // Expired
+        }
+      }
+
       try {
-        const [coursesRes, jobsRes] = await Promise.all([
+        const [coursesRes, jobsRes, applicationsRes] = await Promise.all([
           getAllCourses(),
-          getAllJobs()
+          getAllJobs(),
+          getAllApplications()
         ]);
 
-        // Get latest 3 courses and jobs
         const sortedCourses = [...coursesRes.data]
           .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
           .slice(0, 3);
-          
+
         const sortedJobs = [...jobsRes.data]
           .sort((a, b) => new Date(b.postedDate) - new Date(a.postedDate))
           .slice(0, 3);
 
-        setStats({
-          courses: coursesRes.data.length,
-          jobs: jobsRes.data.length,
-          applications: 0 // To be updated
-        });
-        
-        setRecentCourses(sortedCourses);
-        setRecentJobs(sortedJobs);
-        
+        const applicationsCount = applicationsRes.data.length;
+
+        const dashboardData = {
+          stats: {
+            courses: coursesRes.data.length,
+            jobs: jobsRes.data.length,
+            applications: applicationsCount
+          },
+          recentCourses: sortedCourses,
+          recentJobs: sortedJobs,
+          timestamp: Date.now()
+        };
+
+        // Store in localStorage
+        localStorage.setItem('dashboardData', JSON.stringify(dashboardData));
+
+        setStats(dashboardData.stats);
+        setRecentCourses(dashboardData.recentCourses);
+        setRecentJobs(dashboardData.recentJobs);
+
         toast.success('Dashboard data loaded successfully!', {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
+          position: 'top-right',
+          autoClose: 3000
         });
+
       } catch (error) {
         toast.error('Failed to load dashboard data', {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
+          position: 'top-right',
+          autoClose: 5000
         });
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchStats();
   }, []);
+
+
+  const handleLogout = () => {
+  localStorage.removeItem('token'); // remove token
+  toast.success('Logged out successfully!');
+  navigate('/login'); // redirect to login page
+};
 
   if (loading) {
     return (
@@ -111,6 +139,9 @@ const DashboardPage = () => {
             day: 'numeric' 
           })}
         </Badge>
+        <Button variant="outline-danger" size="sm" onClick={handleLogout}>
+          Logout
+        </Button>
       </div>
 
       <Row className="g-4 mb-4">
@@ -121,7 +152,6 @@ const DashboardPage = () => {
           linkText="Manage Courses"
           icon={<JournalBookmark size={36} />}
           color="primary"
-          trend="+5% from last month"
         />
         
         <DashboardCard 
@@ -131,7 +161,6 @@ const DashboardPage = () => {
           linkText="Manage Jobs"
           icon={<Briefcase size={36} />}
           color="success"
-          trend="+12% from last month"
         />
         
         <DashboardCard 
@@ -141,7 +170,6 @@ const DashboardPage = () => {
           linkText="View Applications"
           icon={<ClipboardData size={36} />}
           color="warning"
-          trend="Pending API integration"
         />
       </Row>
 
@@ -231,9 +259,6 @@ const DashboardCard = ({
             </div>
             <Card.Title className="text-muted fs-6 mb-1">{title}</Card.Title>
           </div>
-          <Badge bg={`${color}-subtle`} text={color} className="fs-7">
-            {trend}
-          </Badge>
         </div>
         
         <div className="d-flex align-items-end">
